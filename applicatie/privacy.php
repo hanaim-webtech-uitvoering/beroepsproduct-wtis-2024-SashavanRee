@@ -8,23 +8,19 @@
 </head>
 <body>
     <header>
-        <h1>Pizzeria Sole Machina 🍕</h1>
-        <a href="images/profile.php" class="profile-icon">
-            <img src="profile-icon.png" alt="Profielicoon">
-            <span>Mijn Profiel</span>
-        </a>
+        <h1>Welcome to My Homepage</h1>
     </header>
     <nav>
         <ul>
-            <li><a href="home.php">Home</a></li>
+            <li><a href="index.php">Home</a></li>
             <li><a href="login.php">inloggen</a></li>
             <li><a href="menu.php">Menu</a></li>
             <li><a href="privacy.php">Privacy</a></li>
         </ul>
     </nav>
     <main>
-        <h2>Over ons</h2>
-        <p>Bekijk onze nieuwste producten.</p>
+        <h2>About Us</h2>
+        <p>This is a simple home page built using HTML and CSS. You can add more content and style it as needed!</p>
     </main>
     <footer>
         <p>&copy; 2025 My Homepage. All rights reserved.</p>
