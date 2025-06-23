@@ -1,101 +1,89 @@
 <?php
+session_start();
 require_once 'db_connectie.php';
+require_once 'functions/functions.php';
 
-$notification = '';  // nog niks te melden
+$error = '';  // nog niks te melden
 
-// check voor de knop
-if(isset($_POST['registeren'])) {
-    $errors = [];
-    // 1. inlezen gegevens uit form
-    $username      = $_POST['naam'];
-    $password = $_POST['wachtwoord'];
 
-    // 2. controleren van de gegevens
-    if(strlen($username) < 4) {
-        $errors[] = 'Gebruikersnaam minstens 4 karakters.';
-    }
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $firstname = htmlspecialchars($_POST['first_name'] ?? '', ENT_QUOTES);
+    $lastname = htmlspecialchars($_POST['last_name'] ?? '', ENT_QUOTES);
+    $address = htmlspecialchars($_POST['address'] ?? '', ENT_QUOTES);
+    $username = htmlspecialchars($_POST['username'] ?? '', ENT_QUOTES);
+    $password = htmlspecialchars($_POST['password'] ?? '', ENT_QUOTES);
+    $role = 'Client'; // standaard rol omdat alleen klanten zich kunnen registreren
 
-    if(strlen($password) < 8) {
-        $errors[] = 'Wachtwoord minstens 8 karakters.';
-    }
-
-    // 3. opslaan van de gegevens
-    if(count($errors) > 0) {
-        $notification = "Er waren fouten in de invoer.<ul>";
-        foreach($errors as $error) {
-            $notification .= "<li>$error</li>";
+    if (!empty($firstname) && !empty($lastname) && !empty($username) && !empty($password)) {
+        if (usernameExists($conn, $username)) {
+            $error = "Gebruikersnaam bestaat al. Kies een andere gebruikersnaam.";
+        } else {
+            if (registerUser($conn, $username, $password, $firstname, $lastname, $address, $role)) {
+                $_SESSION['username'] = $username;
+                header("Location: login.php");
+            } else {
+                $error = "Registratie mislukt. Probeer het opnieuw.";
+            }
         }
-        $notification .= "</ul>";
-
     } else {
-        // Hash the password
-        $passwordhash = password_hash($password, PASSWORD_DEFAULT);
-        
-        // database
-        $db = maakVerbinding();
-        // Insert query (prepared statement)
-        $sql = 'INSERT INTO Gebruikers(naam, passwordhash)
-                values (:naam, :passwordhash)';
-        $query = $db->prepare($sql);
-
-        // Send data to database
-        $data_array = [
-            'naam' => $username,
-            'passwordhash' => $passwordhash
-        ];
-        $succes = $query->execute($data_array);
-
-        // Check results
-        if($succes)
-        {
-            $notification = 'Gebruiker is geregistreerd.';
-        }
-        else
-        {
-            $notification = 'Registratie is mislukt.';
-        }
+        $error = "Vul alle verplichte velden in.";
     }
+
 }
+
 ?>
 
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registreer pagina</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <header>
-        <h1>Registreer pagina</h1>
+        <h1>Registreren</h1>
     </header>
     <nav>
-        <ul>
-            <li><a href="index.php">Home</a></li>
-            <li><a href="login.php">inloggem</a></li>
-            <li><a href="menu.php">Menu</a></li>
-            <li><a href="privacy.php">Privacy</a></li>
-        </ul>
-    </nav>
+    <ul>
+        <li><a href="index.php">Home</a></li>
+        <li><a href="menu.php">Menu</a></li>
+        <li><a href="privacy.php">Privacy</a></li>
+
+        <?php if (isset($_SESSION['username'])): ?>
+            <li><a href="profile.php">Profiel</a></li>
+            <li><a href="login.php">Uitloggen</a></li>
+        <?php else: ?>
+            <li><a href="login.php">Inloggen</a></li>
+        <?php endif; ?>
+    </ul>
+</nav>
     <main>
-        <h2>Create an Account</h2>
+        <h2>Maak een account aan</h2>
+        <?php if ($error): ?>
+            <p style="color:red;"><?php echo htmlspecialchars($error, ENT_QUOTES); ?></p>
+        <?php endif; ?>
         <div class="login-container">
             <div class="login-form">
-                <h3>Customer Registration</h3>
-                <form action="#" method="POST">
-                    <label for="register-name">Naam:</label>
-                    <input type="text" id="register-name" name="register-name" required>
-                    <label for="register-firstname">Firstname:</label>
-                    <input type="email" id="register-email" name="register-email" required>
-                    <label for="register-password">Wachtwoord:</label>
-                    <input type="password" id="register-password" name="register-password" required>
-                    <label for="register-confirm-password">Herhaal wachtwoord:</label>
-                    <input type="password" id="register-confirm-password" name="register-confirm-password" required>
+                <h3>Registreren als klant</h3>
+                <form action="" method="POST">
+                    <label for="first_name">Voornaam:</label>
+                    <input type="text" id="first_name" name="first_name" required>
+                    <label for="last_name">Achternaam:</label>
+                    <input type="text" id="last_name" name="last_name" required>
+                    <label for="username">Gebruikersnaam:</label>
+                    <input type="text" id="username" name="username" required>
+                    <label for="address">Adres (optioneel):</label>
+                    <input type="text" id="address" name="address">
+                    <label for="password">Wachtwoord:</label>
+                    <input type="password" id="password" name="password" required>
                     <button type="submit">Register</button>
                 </form>
-                <p>Already have an account? <a href="login.php">Log hier in.</a></p>
+                <p>Al een account? <a href="login.php">Log hier in.</a></p>
             </div>
         </div>
     </main>
@@ -103,4 +91,5 @@ if(isset($_POST['registeren'])) {
         <p>&copy; 2025 My Homepage. All rights reserved.</p>
     </footer>
 </body>
+
 </html>

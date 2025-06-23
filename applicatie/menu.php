@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once 'Functions/functions.php'; // Zorg dat de functie hier beschikbaar is
 
 $products = getMenuData($conn);
@@ -45,13 +46,19 @@ $html_tables .= '</table>';
         <h1>Pizzeria Sole Machina 🍕</h1>
     </header>
     <nav>
-        <ul>
-            <li><a href="index.php">Home</a></li>
-            <li><a href="login.php">inloggen</a></li>
-            <li><a href="menu.php">Menu</a></li>
-            <li><a href="privacy.php">Privacy</a></li>
-        </ul>
-    </nav>
+    <ul>
+        <li><a href="index.php">Home</a></li>
+        <li><a href="menu.php">Menu</a></li>
+        <li><a href="privacy.php">Privacy</a></li>
+
+        <?php if (isset($_SESSION['username'])): ?>
+            <li><a href="profile.php">Profiel</a></li>
+            <li><a href="login.php">Uitloggen</a></li>
+        <?php else: ?>
+            <li><a href="login.php">Inloggen</a></li>
+        <?php endif; ?>
+    </ul>
+</nav>
     <main>
     <h2>Ons Menu</h2>
         <p>Hieronder zijn onze producten te zien.</p>

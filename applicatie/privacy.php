@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,14 +14,20 @@
     <header>
         <h1>Welcome to My Homepage</h1>
     </header>
-    <nav>
-        <ul>
-            <li><a href="index.php">Home</a></li>
-            <li><a href="login.php">inloggen</a></li>
-            <li><a href="menu.php">Menu</a></li>
-            <li><a href="privacy.php">Privacy</a></li>
-        </ul>
-    </nav>
+   <nav>
+    <ul>
+        <li><a href="index.php">Home</a></li>
+        <li><a href="menu.php">Menu</a></li>
+        <li><a href="privacy.php">Privacy</a></li>
+
+        <?php if (isset($_SESSION['username'])): ?>
+            <li><a href="profile.php">Profiel</a></li>
+            <li><a href="login.php">Uitloggen</a></li>
+        <?php else: ?>
+            <li><a href="login.php">Inloggen</a></li>
+        <?php endif; ?>
+    </ul>
+</nav>
     <main>
         <h2>About Us</h2>
         <p>This is a simple home page built using HTML and CSS. You can add more content and style it as needed!</p>
