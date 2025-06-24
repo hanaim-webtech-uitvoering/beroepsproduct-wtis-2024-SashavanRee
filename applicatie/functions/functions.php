@@ -43,7 +43,24 @@ function loginUser($conn, $username, $password)
 function logoutUser()
 {
     session_start(); // nodig om sessie te kunnen vernietigen
-    session_unset(); // verwijdert alle sessievariabelen
+    $_SESSION = [];
+
+    // If it's desired to kill the session, also delete the session cookie.
+// Note: This will destroy the session, and not just the session data!
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
+        );
+    }
+
+    // Finally, destroy the session.
     session_destroy();
     header('Location: index.php');
 }
@@ -75,5 +92,38 @@ function registerUser($conn, $username, $password, $firstName, $lastName, $addre
 
 }
 
+function getShoppingcartData($conn) {
+    $queryGetItems = "SELECT p.name AS naam, p.price AS prijs, op.quantity AS aantal
+                      FROM Pizza_Order_Product op
+                      JOIN Product p ON op.product_name = p.name";
+                      
+    $stmt = $conn->prepare($queryGetItems);
+    $stmt->execute();
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $items;
+
+}
+
+function addToCart($conn, $productName, $quantity) {
+    $queryAddToCart = "INSERT INTO Pizza_Order_Product (order_id, product_name, quantity)
+                        VALUES ((SELECT MAX(order_id) FROM Pizza_Order), :product_name, :quantity)";
+    $stmt = $conn->prepare($queryAddToCart);
+    $stmt->bindParam(':product_name', $productName, PDO::PARAM_STR);
+    $stmt->bindParam(':quantity', $quantity, PDO::PARAM_INT);
+    return $stmt->execute();
+}
+
+function placeOrder($conn, $personnelUsername, $clientUsername, $orderDate, $status, $address) {
+    $queryPlaceOrder = "INSERT INTO Pizza_Order (client_name, personnel_username, datetime, status, address)
+                        VALUES (:client_name, :personnel_username, :datetime, :status, :address)";
+
+    $stmt = $conn->prepare($queryPlaceOrder);
+    $stmt->bindParam(':client_name', $clientUsername, PDO::PARAM_STR);
+    $stmt->bindParam(':personnel_username', $personnelUsername, PDO::PARAM_STR);
+    $stmt->bindParam(':datetime', $orderDate, PDO::PARAM_STR);
+    $stmt->bindParam(':status', $status, PDO::PARAM_STR);
+    $stmt->bindParam(':address', $address, PDO::PARAM_STR);
+    return $stmt->execute();
+}
 
 ?>

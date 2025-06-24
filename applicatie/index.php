@@ -1,5 +1,8 @@
 <?php
 session_start();
+
+
+var_dump(password_hash('wachtwoord', PASSWORD_DEFAULT));
 ?>
 
 <!DOCTYPE html>
