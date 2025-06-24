@@ -21,6 +21,18 @@ GROUP BY pt.name, p.name, p.price";
     return $products;
 }
 
+function getOrderData($conn, $username) {
+    $queryOrders = "SELECT o.order_id, o.datetime, o.status, o.address, p.name AS product_name, op.quantity
+                   FROM Pizza_Order o
+                   JOIN Pizza_Order_Product op ON o.order_id = op.order_id
+                   JOIN Product p ON op.product_name = p.name
+                   WHERE o.client_name = :username OR o.personnel_username = :username
+                   ORDER BY o.datetime DESC";
+    
+    $stmt = $conn->prepare($queryOrders);
+    $stmt->execute();
+}
+ 
 function loginUser($conn, $username, $password)
 {
     $queryUsers = "SELECT username, password, role FROM [User] WHERE username = :username";
@@ -124,6 +136,17 @@ function placeOrder($conn, $personnelUsername, $clientUsername, $orderDate, $sta
     $stmt->bindParam(':status', $status, PDO::PARAM_STR);
     $stmt->bindParam(':address', $address, PDO::PARAM_STR);
     return $stmt->execute();
+}
+
+function getUserAddress($conn, $username) {
+    $queryGetAddress = "SELECT address FROM [User] WHERE username = :username";
+
+    $stmt = $conn->prepare($queryGetAddress);
+    $stmt->bindParam(':username', $username, PDO::PARAM_STR);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $user['address'] ?? '';
 }
 
 ?>
