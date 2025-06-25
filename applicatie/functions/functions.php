@@ -21,18 +21,53 @@ GROUP BY pt.name, p.name, p.price";
     return $products;
 }
 
-function getOrderData($conn, $username) {
-    $queryOrders = "SELECT o.order_id, o.datetime, o.status, o.address, p.name AS product_name, op.quantity
+function getOrderData($conn, $username)
+{
+    $queryOrders = "SELECT o.order_id, o.datetime, o.status, o.address
                    FROM Pizza_Order o
-                   JOIN Pizza_Order_Product op ON o.order_id = op.order_id
-                   JOIN Product p ON op.product_name = p.name
-                   WHERE o.client_name = :username OR o.personnel_username = :username
+                   WHERE o.client_name = :username 
                    ORDER BY o.datetime DESC";
-    
+
     $stmt = $conn->prepare($queryOrders);
+    $stmt->bindParam(':username', $username);
     $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
- 
+
+function getOrderDetails(PDO $conn, int $orderId, string $username): array
+{
+    $query = "SELECT o.order_id, o.datetime, o.status, o.address,
+                     p.name AS product_name, p.price, op.quantity
+              FROM Pizza_Order o
+              JOIN Pizza_Order_Product op ON o.order_id = op.order_id
+              JOIN Product p ON op.product_name = p.name
+              WHERE o.order_id = :order_id AND o.client_name = :username";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':order_id', $orderId, PDO::PARAM_INT);
+    $stmt->bindParam(':username', $username, PDO::PARAM_STR);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getOrderStatusText(int $status): string
+{
+    switch ($status) {
+        case 1:
+            return 'In behandeling';
+        case 2:
+            return 'In de oven';
+        case 3:
+            return 'onderweg';
+        case 4:
+            return 'Afgeleverd';
+        default:
+            return 'Onbekende status';
+    }
+}
+
 function loginUser($conn, $username, $password)
 {
     $queryUsers = "SELECT username, password, role FROM [User] WHERE username = :username";
@@ -104,11 +139,12 @@ function registerUser($conn, $username, $password, $firstName, $lastName, $addre
 
 }
 
-function getShoppingcartData($conn) {
+function getShoppingcartData($conn)
+{
     $queryGetItems = "SELECT p.name AS naam, p.price AS prijs, op.quantity AS aantal
                       FROM Pizza_Order_Product op
                       JOIN Product p ON op.product_name = p.name";
-                      
+
     $stmt = $conn->prepare($queryGetItems);
     $stmt->execute();
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -116,7 +152,8 @@ function getShoppingcartData($conn) {
 
 }
 
-function addToCart($conn, $productName, $quantity) {
+function addToCart($conn, $productName, $quantity)
+{
     $queryAddToCart = "INSERT INTO Pizza_Order_Product (order_id, product_name, quantity)
                         VALUES ((SELECT MAX(order_id) FROM Pizza_Order), :product_name, :quantity)";
     $stmt = $conn->prepare($queryAddToCart);
@@ -125,7 +162,32 @@ function addToCart($conn, $productName, $quantity) {
     return $stmt->execute();
 }
 
-function placeOrder($conn, $personnelUsername, $clientUsername, $orderDate, $status, $address) {
+function removeFromCart(string $productName): void {
+    foreach ($_SESSION['cart'] as $key => $item) {
+        if ($item['naam'] === $productName) {
+            unset($_SESSION['cart'][$key]);
+            $_SESSION['cart'] = array_values($_SESSION['cart']); // Herindexeer array
+            return;
+        }
+    }
+}
+
+function updateCartQuantity(string $productName, int $newQuantity): void {
+    foreach ($_SESSION['cart'] as $key => &$item) {
+        if ($item['naam'] === $productName) {
+            if ($newQuantity > 0) {
+                $item['aantal'] = $newQuantity;
+            } else {
+                unset($_SESSION['cart'][$key]);
+            }
+            break;
+        }
+    }
+    $_SESSION['cart'] = array_values(array_filter($_SESSION['cart']));
+}
+
+function placeOrder($conn, $personnelUsername, $clientUsername, $orderDate, $status, $address)
+{
     $queryPlaceOrder = "INSERT INTO Pizza_Order (client_name, personnel_username, datetime, status, address)
                         VALUES (:client_name, :personnel_username, :datetime, :status, :address)";
 
@@ -138,7 +200,8 @@ function placeOrder($conn, $personnelUsername, $clientUsername, $orderDate, $sta
     return $stmt->execute();
 }
 
-function getUserAddress($conn, $username) {
+function getUserAddress($conn, $username)
+{
     $queryGetAddress = "SELECT address FROM [User] WHERE username = :username";
 
     $stmt = $conn->prepare($queryGetAddress);

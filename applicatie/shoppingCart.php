@@ -3,17 +3,17 @@ session_start();
 require_once 'db_connectie.php';
 require_once 'functions/functions.php';
 
+
+$isGuest = !isset($_SESSION['username']); // check of gebruiker een gast is
+$clientUsername = $isGuest ? 'gast' : $_SESSION['username'];
+$existingAddress = getUserAddress($conn, $clientUsername);
+
 $html_table = '';
 $error = '';
 
 
-
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     //adres ophalen uit formulier
-    $existingAddresses = getUserAddress($conn, $clientUsername);
-    $isGuest = !$_SESSION['username'] ?? false; //check of de gebruiker een gast is
-    $clientUsername = $isGuest ? 'gast' : $_SESSION['username'];
     $submittedAddress = $_POST['address'] ?? '';
     $addressToUse = !empty($submittedAddress) ? $submittedAddress : $existingAddress;
     $personnelUsername = 'ayildiz'; // Of kies een medewerker
@@ -36,6 +36,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     } else {
         $error = "<p style='color:red'>Je winkelwagen is leeg of het adres is niet ingevuld.</p>";
     }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['remove_item'])) {
+        removeFromCart($_POST['remove_item']);
+    }
+
+    if (isset($_POST['update_quantity'], $_POST['product_name'])) {
+        $productName = $_POST['product_name'];
+        $newQuantity = (int) $_POST['update_quantity'];
+        updateCartQuantity($productName, $newQuantity);
+    }
+}
+
+
+//Winkelwakentabel opbouw
+if (!empty($_SESSION['cart'])) {
+    $total = 0;
+    $html_table .= "<table>
+    <tr>
+        <th>Product</th>
+        <th>Aantal</th>
+        <th>Prijs per stuk</th>
+        <th>Totaal</th>
+        <th>Actie</th>
+    </tr>";
+    foreach ($_SESSION['cart'] as $product) {
+        $subtotal = $product['prijs'] * $product['aantal'];
+        $total += $subtotal;
+
+        $html_table .= "<tr>
+        <td>" . htmlspecialchars($product['naam']) . "</td>
+        <td>
+            <form method='post' style='display:inline-flex; gap:5px; align-items:center;'>
+                <input type='number' name='update_quantity' value='{$product['aantal']}' min='1' style='width: 50px;'>
+                <input type='hidden' name='product_name' value='" . htmlspecialchars($product['naam']) . "'>
+                <button type='submit'>Update</button>
+            </form>
+        </td>
+        <td>€" . number_format($product['prijs'], 2) . "</td>
+        <td>€" . number_format($subtotal, 2) . "</td>
+        <td>
+            <form method='post'>
+                <input type='hidden' name='remove_item' value='" . htmlspecialchars($product['naam']) . "'>
+                <button type='submit'>Verwijder</button>
+            </form>
+        </td>";
+    }
+
+        $html_table .= "<tr>
+        <td colspan='3'><strong>Totaal</strong></td>
+        <td colspan='2'><strong>€" . number_format($total, 2) . "</strong></td>
+    </tr>
+</table>";
+    
 }
 
 ?>
@@ -74,36 +129,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
         <?= $error ?>
 
         <?php if (!empty($_SESSION['cart'])): ?>
-            <table>
-                <tr>
-                    <th>Product</th>
-                    <th>Aantal</th>
-                    <th>Prijs per stuk</th>
-                    <th>Totaal</th>
-                </tr>
-                <?php
-                $totaal = 0;
-                foreach ($_SESSION['cart'] as $product):
-                    $subtotaal = $product['prijs'] * $product['aantal'];
-                    $totaal += $subtotaal;
-                    ?>
-                    <tr>
-                        <td><?= htmlspecialchars($product['naam']) ?></td>
-                        <td><?= $product['aantal'] ?></td>
-                        <td>€<?= number_format($product['prijs'], 2) ?></td>
-                        <td>€<?= number_format($subtotaal, 2) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-                <tr>
-                    <td colspan="3"><strong>Totaal:</strong></td>
-                    <td><strong>€<?= number_format($totaal, 2) ?></strong></td>
-                </tr>
-            </table>
-
+            <?= $html_table ?>
             <form method="post">
-                <label for="address">Bezorgadres:</label><br>
-                <input type="text" name="address" id="address" <?= empty($existingAddress) ? 'required' : '' ?>
-                    style="width: 100%;">
+                <label for="address">Adres:</label>
+                <input type="text" id="address" name="address" value="<?= htmlspecialchars($existingAddress) ?>" required>
+                <br>
                 <input type="submit" name="place_order" value="Bestelling plaatsen">
             </form>
         <?php else: ?>

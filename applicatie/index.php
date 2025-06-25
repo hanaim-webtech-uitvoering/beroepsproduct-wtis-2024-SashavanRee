@@ -1,8 +1,6 @@
 <?php
 session_start();
 
-
-var_dump(password_hash('wachtwoord', PASSWORD_DEFAULT));
 ?>
 
 <!DOCTYPE html>
@@ -16,10 +14,6 @@ var_dump(password_hash('wachtwoord', PASSWORD_DEFAULT));
 <body>
     <header>
         <h1>Pizzeria Sole Machina 🍕</h1>
-        <a href="images/profile.php" class="profile-icon">
-            <img src="profile-icon.png" alt="Profielicoon">
-            <span>Mijn Profiel</span>
-        </a>
     </header>
    <nav>
     <ul>
