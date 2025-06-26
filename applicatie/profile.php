@@ -32,11 +32,13 @@ if (empty($grouped_orders)) {
 } else {
     $html_tables .= "<table>
                         <tr>
+                        <thead>
                             <th>Bestelnummer</th>
                             <th>Datum</th>
                             <th>Adres</th>
                             <th>Status</th>
                             <th>Actie</th>
+                            </thead>
                         </tr>";
     foreach ($grouped_orders as $orderId => $data) {
         $statusText = getOrderStatusText((int) $order['status']);
@@ -74,7 +76,7 @@ if (empty($grouped_orders)) {
 
             <?php if (isset($_SESSION['username'])): ?>
                 <li><a href="profile.php">Profiel</a></li>
-                <li><a href="login.php">Uitloggen</a></li>
+                <li><a href="logout.php">Uitloggen</a></li>
             <?php else: ?>
                 <li><a href="login.php">Inloggen</a></li>
             <?php endif; ?>

@@ -8,9 +8,10 @@ if (!isset($_SESSION['username']) || !isset($_GET['order_id'])) {
     exit;
 }
 
+
 $orderId = (int) $_GET['order_id'];
 $username = $_SESSION['username'];
-$items = getOrderDetails($conn, $orderId, $username);
+$items = getOrderDetailsPersonnel($conn, $orderId);
 
 if (!$items) {
     die("Bestelling niet gevonden of je hebt geen toegang.");
@@ -22,8 +23,8 @@ $address = htmlspecialchars($order['address']);
 // Tabel opbouwen als string
 $html_table = '
 <table>
+<thead>
     <tr>
-    <thead>
         <th>Product</th>
         <th>Prijs</th>
         <th>Aantal</th>
@@ -40,13 +41,15 @@ foreach ($items as $item) {
     $total += $subTotal;
     $subTotalFormatted = number_format($subTotal, 2);
 
+
+
     $html_table .= "
-    <tr>
-        <td>$product</td>
-        <td>€$price</td>
-        <td>$quantity</td>
-        <td>€$subTotalFormatted</td>
-    </tr>";
+<tr>
+    <td>$product</td>
+    <td>€$price</td>
+    <td>$quantity</td>
+    <td>€$subTotalFormatted</td>
+</tr>";
 }
 
 $html_table .= '
@@ -72,7 +75,9 @@ $html_table .= '
         <h1>Bestelling #<?= $orderId ?></h1>
     </header>
     <main>
-        <button onclick="window.history.back()">Terug</button>
+        <a href="orderViewPersonnel.php?order_id=<?= urlencode($orderId) ?>">
+            <button type="button">Terug naar overzicht</button>
+        </a>
         <?= $html_table ?>
     </main>
     <footer>

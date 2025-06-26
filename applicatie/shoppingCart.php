@@ -56,11 +56,13 @@ if (!empty($_SESSION['cart'])) {
     $total = 0;
     $html_table .= "<table>
     <tr>
+    <thead>
         <th>Product</th>
         <th>Aantal</th>
         <th>Prijs per stuk</th>
         <th>Totaal</th>
         <th>Actie</th>
+        </thead>
     </tr>";
     foreach ($_SESSION['cart'] as $product) {
         $subtotal = $product['prijs'] * $product['aantal'];
@@ -85,12 +87,12 @@ if (!empty($_SESSION['cart'])) {
         </td>";
     }
 
-        $html_table .= "<tr>
+    $html_table .= "<tr>
         <td colspan='3'><strong>Totaal</strong></td>
         <td colspan='2'><strong>€" . number_format($total, 2) . "</strong></td>
     </tr>
 </table>";
-    
+
 }
 
 ?>
@@ -118,7 +120,7 @@ if (!empty($_SESSION['cart'])) {
 
             <?php if (isset($_SESSION['username'])): ?>
                 <li><a href="profile.php">Profiel</a></li>
-                <li><a href="login.php">Uitloggen</a></li>
+                <li><a href="logout.php">Uitloggen</a></li>
             <?php else: ?>
                 <li><a href="login.php">Inloggen</a></li>
             <?php endif; ?>

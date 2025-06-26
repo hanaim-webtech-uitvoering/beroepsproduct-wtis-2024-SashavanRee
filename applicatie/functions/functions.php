@@ -89,11 +89,12 @@ function loginUser($conn, $username, $password)
 }
 function logoutUser()
 {
-    session_start(); // nodig om sessie te kunnen vernietigen
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
     $_SESSION = [];
 
-    // If it's desired to kill the session, also delete the session cookie.
-// Note: This will destroy the session, and not just the session data!
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
         setcookie(
@@ -107,9 +108,9 @@ function logoutUser()
         );
     }
 
-    // Finally, destroy the session.
     session_destroy();
     header('Location: index.php');
+    exit;
 }
 
 function usernameExists($conn, $username)
@@ -162,7 +163,8 @@ function addToCart($conn, $productName, $quantity)
     return $stmt->execute();
 }
 
-function removeFromCart(string $productName): void {
+function removeFromCart(string $productName): void
+{
     foreach ($_SESSION['cart'] as $key => $item) {
         if ($item['naam'] === $productName) {
             unset($_SESSION['cart'][$key]);
@@ -172,7 +174,8 @@ function removeFromCart(string $productName): void {
     }
 }
 
-function updateCartQuantity(string $productName, int $newQuantity): void {
+function updateCartQuantity(string $productName, int $newQuantity): void
+{
     foreach ($_SESSION['cart'] as $key => &$item) {
         if ($item['naam'] === $productName) {
             if ($newQuantity > 0) {
@@ -210,6 +213,45 @@ function getUserAddress($conn, $username)
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     return $user['address'] ?? '';
+}
+
+function getAllActiveOrders($conn)
+{
+    $queryGetActiveOrders = "SELECT o.order_id, o.datetime, o.status, o.address, o.client_name, o.personnel_username
+                     FROM Pizza_Order o
+                     WHERE o.status < 4
+                     ORDER BY o.datetime DESC";
+
+    $stmt = $conn->prepare($queryGetActiveOrders);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getOrderDetailsPersonnel($conn, $orderId)
+{
+    $queryGetOrderDetails = "SELECT o.order_id, o.datetime, o.status, o.address,
+                     p.name AS product_name, p.price, op.quantity
+              FROM Pizza_Order o
+              JOIN Pizza_Order_Product op ON o.order_id = op.order_id
+              JOIN Product p ON op.product_name = p.name
+              WHERE o.order_id = :order_id";
+
+    $stmt = $conn->prepare($queryGetOrderDetails);
+    $stmt->bindParam(':order_id', $orderId, PDO::PARAM_STR);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function updateStatusOrder($conn, $orderId, $status)
+{
+    $queryUpdateOrderStatus = "UPDATE Pizza_Order
+                               SET status = :status
+                               WHERE order_id = :order_id";
+
+    $stmt = $conn->prepare($queryUpdateOrderStatus);
+    $stmt->bindparam(':status', $status, PDO::PARAM_INT);
+    $stmt->bindparam(':order_id', $orderId, PDO::PARAM_INT);
+    $stmt->execute();
 }
 
 ?>

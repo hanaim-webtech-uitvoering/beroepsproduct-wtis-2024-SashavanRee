@@ -15,7 +15,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $role = 'Client'; // standaard rol omdat alleen klanten zich kunnen registreren
 
     if (!empty($firstname) && !empty($lastname) && !empty($username) && !empty($password)) {
-        if (usernameExists($conn, $username)) {
+        //wachtwoord checken
+        $passwordValid = preg_match('/[a-z]/', $password) &&    // ten minste één kleine letter
+            preg_match('/[A-Z]/', $password) &&    // ten minste één hoofdletter
+            preg_match('/[0-9]/', $password) &&    // ten minste één cijfer
+            preg_match('/[\W_]/', $password) &&    // ten minste één speciaal teken
+            strlen($password) >= 8;               // minimale lengte van 8 tekens
+
+        if (!$passwordValid) {
+            $error = "Wachtwoord moet ten minste 8 tekens lang zijn, met ten minste één kleine letter, één hoofdletter, één cijfer en één speciaal teken.";
+        } elseif (usernameExists($conn, $username)) {
             $error = "Gebruikersnaam bestaat al. Kies een andere gebruikersnaam.";
         } else {
             if (registerUser($conn, $username, $password, $firstname, $lastname, $address, $role)) {
@@ -49,19 +58,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <h1>Registreren</h1>
     </header>
     <nav>
-    <ul>
-        <li><a href="index.php">Home</a></li>
-        <li><a href="menu.php">Menu</a></li>
-        <li><a href="privacy.php">Privacy</a></li>
+        <ul>
+            <li><a href="index.php">Home</a></li>
+            <li><a href="menu.php">Menu</a></li>
+            <li><a href="privacy.php">Privacy</a></li>
 
-        <?php if (isset($_SESSION['username'])): ?>
-            <li><a href="profile.php">Profiel</a></li>
-            <li><a href="login.php">Uitloggen</a></li>
-        <?php else: ?>
-            <li><a href="login.php">Inloggen</a></li>
-        <?php endif; ?>
-    </ul>
-</nav>
+            <?php if (isset($_SESSION['username'])): ?>
+                <li><a href="profile.php">Profiel</a></li>
+                <li><a href="logout.php">Uitloggen</a></li>
+            <?php else: ?>
+                <li><a href="login.php">Inloggen</a></li>
+            <?php endif; ?>
+        </ul>
+    </nav>
     <main>
         <h2>Maak een account aan</h2>
         <?php if ($error): ?>
@@ -80,7 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <label for="address">Adres (optioneel):</label>
                     <input type="text" id="address" name="address">
                     <label for="password">Wachtwoord:</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" name="password"
+                        pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}"
+                        title="Minstens 12 tekens, met minstens 1 hoofdletter, 1 kleine letter, 1 cijfer en 1 speciaal teken"
+                        required>
                     <button type="submit">Register</button>
                 </form>
                 <p>Al een account? <a href="login.php">Log hier in.</a></p>

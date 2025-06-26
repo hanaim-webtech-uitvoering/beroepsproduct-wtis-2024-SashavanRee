@@ -45,7 +45,14 @@ $html_tables = '';
 foreach ($grouped_products as $categorie => $items) {
     $html_tables .= "<h3>{$categorie}</h3>";
     $html_tables .= '<table>';
-    $html_tables .= '<tr><th>Naam</th><th>Prijs</th><th>Ingrediënten</th><th>Bestelling</th></tr>';
+    $html_tables .= '<tr>
+                        <thead>
+                            <th>Naam</th>
+                            <th>Prijs</th>
+                            <th>Ingrediënten</th>
+                            <th>Bestelling</th>
+                        </thead>
+                    </tr>';
 
     foreach ($items as $item) {
         $html_tables .= "<tr>
@@ -93,7 +100,7 @@ foreach ($grouped_products as $categorie => $items) {
 
             <?php if (isset($_SESSION['username'])): ?>
                 <li><a href="profile.php">Profiel</a></li>
-                <li><a href="login.php">Uitloggen</a></li>
+                <li><a href="logout.php">Uitloggen</a></li>
             <?php else: ?>
                 <li><a href="login.php">Inloggen</a></li>
             <?php endif; ?>

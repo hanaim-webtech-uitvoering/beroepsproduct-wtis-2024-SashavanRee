@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = $_SESSION['role'];
 
         if ($role === 'Personnel') {
-            header("Location: orderView.php");
+            header("Location: orderViewPersonnel.php");
         } else if ($role === 'Client') {
             header("Location: profile.php");
         }

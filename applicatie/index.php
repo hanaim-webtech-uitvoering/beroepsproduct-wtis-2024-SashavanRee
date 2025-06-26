@@ -23,7 +23,7 @@ session_start();
 
         <?php if (isset($_SESSION['username'])): ?>
             <li><a href="profile.php">Profiel</a></li>
-            <li><a href="login.php">Uitloggen</a></li>
+            <li><a href="logout.php">Uitloggen</a></li>
         <?php else: ?>
             <li><a href="login.php">Inloggen</a></li>
         <?php endif; ?>
