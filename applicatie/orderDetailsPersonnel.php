@@ -3,6 +3,19 @@ session_start();
 require_once 'db_connectie.php';
 require_once 'functions/functions.php';
 
+//Controle of de gebruiker de juiste rol heeft
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Personnel') {
+    header("Location: unauthorized.php");
+    exit;
+}
+
+//checken of de gebruiker is ingelogd
+// Dit voorkomt dat niet-ingelogde gebruikers deze pagina kunnen bekijken
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php");
+    exit;
+}
+
 if (!isset($_SESSION['username']) || !isset($_GET['order_id'])) {
     header("Location: login.php");
     exit;

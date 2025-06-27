@@ -3,6 +3,7 @@ session_start();
 require_once 'db_connectie.php';
 require_once 'functions/functions.php';
 
+// Controle of de gebruiker is ingelogd
 if (!isset($_SESSION['username']) || !isset($_GET['order_id'])) {
     header("Location: login.php");
     exit;

@@ -74,9 +74,7 @@ function loginUser($conn, $username, $password)
     $stmt = $conn->prepare($queryUsers);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
-
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    var_dump($user);
 
     if ($user && password_verify($password, $user['password'])) {
         $_SESSION['username'] = $user['username'];
@@ -136,8 +134,6 @@ function registerUser($conn, $username, $password, $firstName, $lastName, $addre
     $stmt->bindParam(':address', $address, PDO::PARAM_STR);
     $stmt->bindParam(':role', $role, PDO::PARAM_STR);
     return $stmt->execute();
-
-
 }
 
 function getShoppingcartData($conn)

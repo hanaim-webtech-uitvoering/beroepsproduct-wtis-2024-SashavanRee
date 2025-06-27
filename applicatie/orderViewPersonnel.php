@@ -3,6 +3,15 @@ session_start();
 require_once 'db_connectie.php';
 require_once 'functions/functions.php';
 
+//Controle of de gebruiker de juiste rol heeft
+// Dit is een beveiligingsmaatregel om ervoor te zorgen dat alleen personeel toegang heeft tot deze pagina
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Personnel') {
+    header("Location: unauthorized.php");
+    exit;
+}
+
+//checken of de gebruiker is ingelogd
+// Dit voorkomt dat niet-ingelogde gebruikers deze pagina kunnen bekijken
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit;
